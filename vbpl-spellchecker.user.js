@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         VBPL Spellchecker
 // @namespace    http://tampermonkey.net/
-// @version      1.4
+// @version      1.5
 // @description  Tool check chính tả trên VBPL
 // @author       DatND
 // @match        *://*/*
@@ -86,12 +86,13 @@
             const afterWords = normalizeStr(afterText).split(/\s+/).filter(w => w);
 
             let anchorText = "";
-            if (beforeWords.length >= 2) {
-                anchorText = beforeWords.slice(-3).join(" ");
-            } else if (afterWords.length >= 2) {
-                anchorText = afterWords.slice(0, 3).join(" ");
+            let leftAnchor = beforeWords.slice(-3).join(" ");
+            let rightAnchor = afterWords.slice(0, 3).join(" ");
+
+            if (leftAnchor && rightAnchor) {
+                anchorText = leftAnchor + " " + rightAnchor;
             } else {
-                anchorText = beforeText.trim() || afterText.trim();
+                anchorText = leftAnchor || rightAnchor || beforeText.trim() || afterText.trim();
             }
 
             if (anchorText) {
@@ -108,7 +109,7 @@
 
                             const span = document.createElement('span');
                             range.surroundContents(span);
-
+                            
                             span.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
                             span.style.transition = 'background-color 0.3s ease';
@@ -125,7 +126,7 @@
                                     parent.normalize();
                                 }, 300);
                             }, 2000);
-                            return;
+                            return; 
                         } catch(e) {
                             node.parentElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
                             return;
@@ -295,7 +296,6 @@
         }
     }
 
-    // ĐÃ SỬA: Chuyển giao diện của Insert/Delete thành dạng 2 dòng giống hệt Replace
     function createErrorPanel(errors) {
         let panel = document.getElementById('spellcheck-error-panel');
         if (!panel) {
@@ -334,7 +334,6 @@
                         let textBefore = "";
                         let textAfter = "";
 
-                        // Đổi giao diện hiển thị gọn gàng y chang replace
                         if (err.type === 'insert') {
                             textBefore = err.context.replace(/\[THÊM:.*?\]/g, "").replace(/\s+/g, ' ').trim();
                             textAfter = err.context.replace(/\[THÊM:\s*(.*?)\]/g, "<strong>$1</strong>").replace(/\s+/g, ' ').trim();
@@ -344,7 +343,7 @@
                         }
 
                         const typeLabel = err.type === 'insert' ? 'Thiếu từ' : 'Dư từ';
-                        li.style.color = "#cf1322";
+                        li.style.color = "#cf1322"; 
                         li.innerHTML = `<small style="display:block; color: #999; font-size: 10px; margin-bottom: 2px;">Gợi ý từ Database (${typeLabel})</small>
                                         <span>...${textBefore}...</span> → <span style="color: #28a745;">...${textAfter}...</span>`;
                     } else {
